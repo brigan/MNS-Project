@@ -41,6 +41,8 @@ def exponentialDecay(x,param):
         Arguments:
             ==> x: current value of the variable.
             ==> param: list of parameters. In this case: [tau,resting_value].
+            	--> tau: eigentime of the decay. 
+            	--> resting_value: value to which the variable tend based upon the decay. 
     """
     tau = param[0]
     resting_value = param[1]
@@ -61,32 +63,60 @@ class Dendrite:
     """Dendrite of an integrate-and-fire neuron:
    
         A dendrite, as we define it here, receives inputs from many presynaptic axons and sums up their contributions. If a threshold is reached, it should generate an action potential.
+        
+    Variables: 
+    	==> self: object of the class Dendrite. 
+    	==> V: potential of 'self'. 
+    	==> spike: boolean: True ==> spike, False ==> no spike. 
+    	==> inAxons: array of objects of the class Axon. These 'Axons' are attached to 'self' and interact after the corresponding model. 
+    	==> V_rest: value towards the potential of 'self' decays when no imput current comes from Axons in 'inAxon'. 
+    	==> tau: eigentime of the decay of V. 
+    	==> V_thr: when V>V_thr, 'self' fires an action potential increasing its voltage and triggering the rewarding of those Axons from 'inAxon' which provoked the spike. 
+    	==> V_peak: potential to which the voltage is set during spiking. 
+    	==> V_reset: potential to which the voltage is set after spiking. 
+    	==> M: potential penalization that presynaptic axons spiking out of time might get. 
+    	==> A_minus: increase of 'M' each time 'self' fires. 
+    	==> tau_minus: eigentime of the decay of the penalization. 
+        
+    Methods: 
+    	==> __init__: __init__ function for objects of class Dendrite. 
+    	==> updateStatus: updates all the variables enclosed in objects of class Dendrite using the corresponding methods. 
+    	==> updateV: updates the voltage of objects of the class Dendrite afther the corresponding model and elicits any further action if necessary. 
+    	==> updateResting_value: updates the value to which the voltage tends at each time. 
+    	==> updateM: updates the function which controls the penalizations. 
+    	
     """
    
    
     #########################################################
     ## __init__:
    
-    def __init__(self, arrayAxons, V_rest=-70, tau=20, V_threshold=-54, V_peak=60, V_reset=-60, 
-                 Aminus=0.00525, tauMinus=20):
+    def __init__(self, arrayAxons, V_rest=-70, tau=20, V_thr=-54, V_peak=60, V_reset=-60, 
+                 A_minus=0.00525, tauMinus=20):
         """__init__ function for the class Dendrite:
        
             This function initializes the objects of class Dendrite.
             
-            Arguments:
-            ==> arrayAxons: array of incoming axons.
-            ==> V_rest: Resting voltage of the dendrite.
-            ==> tau: proper time for the integrate-and-fire procces.
-            ==> V_Threshold: Threshold potential which would fire an action potential.
+        Arguments:
+            ==> self: object of the class Dendrite. 
+    		==> inAxons: array of objects of the class Axon. These 'Axons' are attached to 'self' and interact after the corresponding model. 
+    		==> V_rest: value towards the potential of 'self' decays when no imput current comes from Axons in 'inAxon'. 
+    		==> tau: eigentime of the decay of V. 
+	    	==> V_thr: when V>V_thr, 'self' fires an action potential increasing its voltage and triggering the rewarding of those Axons from 'inAxon' which provoked the spike. 
+    		==> V_peak: potential to which the voltage is set during spiking. 
+    		==> V_reset: potential to which the voltage is set after spiking. 
+	    	==> A_minus: increase of 'M' each time 'self' fires. 
+    		==> tau_minus: eigentime of the decay of the penalization. 
+    		
         """
        
         self.inAxons = arrayAxons
         self.V_rest = V_rest
         self.tau = tau
-        self.V_thr = V_threshold
+        self.V_thr = V_thr
         self.V_peak = V_peak
         self.V_reset = V_reset
-        self.Aminus = Aminus
+        self.A_minus = A_minus
         self.tauMinus = tauMinus
        
         # Some aditional parameters of objects of class Axon which are not explicitly given but set here:
@@ -107,7 +137,7 @@ class Dendrite:
     def updateStatus(self):
         """updateStatus function: 
         
-        	This function updates the status of objects of the class 'dendrite' by updating each of its important features. 
+        	This function updates the status of objects of the class Dendrite by updating each of its important features. 
         
         """
         
@@ -124,7 +154,7 @@ class Dendrite:
        
             This function updates the voltage using the integrate-and-fire model. 
             
-            Since in this function is calculated whether the postsynaptic dendrite fires or not, this function also elicits those actions which are explicitly triggered by action potentials in postsynaptic dendrites. Thus, if a spike happens, this function calls the 'getReward()' function for each excitatory axon. 
+            Since in this function is calculated whether the postsynaptic dendrite fires or not, this function also elicits those actions which are explicitly triggered by action potentials happening in postsynaptic dendrites. Thus, if a spike happens, this function calls the 'getReward()' function for each excitatory axon attached to 'self'. 
             
         """
         
@@ -150,7 +180,7 @@ class Dendrite:
     def updateResting_value(self):
         """updateResting_value function:
        
-            This functions update the resting value of the dendrite to which its voltage decays within the paradigm of integrate-and-fire neurons. This value depends on the current injected from all the presynaptic axons.
+            In the integrate-and-fire model, the voltage of a neuron behaves as an exponential decay whose resting value depends on many variables and parameters of the presynaptic connections. This function gets these variables and parameters at each time and calculate to which value is the voltage of the postsynaptice dendrite decaying. This value towards the voltage decays is stored in the variable 'resting_value' of an object of class Dendrite. 
             
         """
        
@@ -167,12 +197,12 @@ class Dendrite:
     def updateM(self): 
         """updateM function: 
         
-        	This function updates the penalization that each and every presynaptic axon gets when fired out of time. Since the penalization is common to all the axons which are presynaptic to the same dendrite, 'M' is a function of the dendrite. 
+        	This function updates the potential penalization that each and every presynaptic axon gets when fired out of time. Since the penalization is the same for all the axons which are presynaptic to the same dendrite, 'M' is a function of the dendrite. 
         
         """
         
         if self.spike: 
-            self.M = self.M - self.Aminus
+            self.M = self.M - self.A_minus
         else:
             self.M = euler(exponentialDecay, self.M, [self.tauMinus,0])
    
@@ -192,7 +222,31 @@ class Axon:
             self.g(t) --> self.g(t) + g_Increase         ==> If an action potential arrives to 'self'.
             exponential decay of self.g(t) to zero otherwise.
             
-        Axons might be inhibitory or excitatory. This is stated through the internal variables 'self.E' and 'self.g_Increase', passed to the object when it is created and thus defining its function.
+        Axons might be inhibitory or excitatory. This is stated through the internal variables 'self.E' and 'self.g_Increase', passed to the object when it is created and thus defining its function. I finally decided not to create an special class for inhibitory synapses since the behavior is not so different. The only point is not to reward or penalize inhibitory synapses, which is easily done: 'if self.E==0 --excitatory-- : penalize or reward; otherwise: do not!'. 
+        
+    Variables: 
+    	==> self: object of the class Axon. 
+    	==> outDendrite: object of the class Dendrite to which 'self' is attached. 
+    	==> g: conductivity of the synapse linking 'self' with 'outDendrite'. 
+    	==> spike: boolean: True ==> spike, False ==> no spike. 
+    	==> p_spike: probability that an action potential would arrive to 'self' in each time step. 
+    	==> E: inversion potential for 'self'. In general: E=0 ==> excitatory synapse, E=-70 ==> inhibitory synapse. 
+    	==> g_boost: increase of the conectivity each time an action potential arrives to 'self'. 
+    	==> g_max: max g_boost, to be reached through rewarding after the model. 
+    	==> g_min: min g_boost, to be reached through penalization after the model. 
+    	==> tau: eigentime of the decay of the conectivity after an action potential has arrived to 'self'. 
+    	==> P: potential reward that 'self' might get spiking at the proper time. 
+    	==> A_plus: increase of 'P' each time 'self' fires. 
+    	==> tau_plus: eigentime of the decay of the reward. 
+        
+    Methods: 
+    	==> __init__: __init__ function for objects of class Axon. 
+    	==> updateStatus: updates all the variables enclosed in objects of class Axon using the corresponding methods. 
+    	==> updateG: updates the conductivity of the synapse. 
+    	==> updateP: updates the potential reward the synapse might get if the firing of the presynaptic axon is synchronized to that of the postsynaptic dendrite. 
+    	==> getReward: gets the current reward for the synapse. 
+    	==> gegPenalization: gets the current penalization for the synapse. 
+    	
     """
    
    
@@ -200,7 +254,7 @@ class Axon:
     #########################################################
     ## __init__:
    
-    def __init__(self, p_spike, E, g_boost=0.015, g_max=0.015, g_min=0, tau=5, Aplus=0.005, 
+    def __init__(self, p_spike, E, g_boost=0.015, g_max=0.015, g_min=0, tau=5, A_plus=0.005, 
                  tauPlus=20, outDendrite=None):
         """__init__ function of the Axon class:
        
@@ -219,7 +273,7 @@ class Axon:
         self.g_min = g_min
         self.g_boost = g_boost
         self.tau = tau
-        self.Aplus = Aplus
+        self.A_plus = A_plus
         self.tauPlus = tauPlus
         self.outDendrite = outDendrite
         
@@ -228,6 +282,19 @@ class Axon:
         self.spike = False
         self.P = 0
        
+    #########################################################
+    ## updateG:
+    
+    def updateStatus(self):
+        """updateStatus function: 
+        
+        	This function updates the status of objects of the class Axon by updating each of its important features. 
+        
+        """
+        
+        self.updateG()
+        self.updateP()
+    
    
     #########################################################
     ## updateG:
@@ -235,7 +302,7 @@ class Axon:
     def updateG(self):
         """UpdateG function:
        
-            This method updates the connectivity of the axon by increasing it a quantity 'g_boost' if an action potential arrives to 'solf' and by letting it decay exponentially otherwise.
+            This method updates the connectivity of the axon increasing 'g' in a quantity 'g_boost' if an action potential arrives to 'self' or letting 'g' decay exponentially otherwise.
             
         """
         
@@ -247,7 +314,6 @@ class Axon:
                 self.getPenalization()
            
         self.g = euler(exponentialDecay, self.g, [self.tau,0])
-        self.updateP()
 
 
     #########################################################
@@ -256,12 +322,12 @@ class Axon:
     def updateP(self):
         """updateP function: 
         
-        	This method updates the 'P' function which encodes the reward each presynaptic connection recives if the postsynaptic dendrite fires at the proper time after 'self' did. Since the reward each presynaptic axon gets deppends on the time it fires, 'P' belongs to each presynaptic axon and not to the postsynaptic dendrite as 'M' does. 
+        	This method updates the 'P' function which encodes the reward that synapse recives if the postsynaptic dendrite fires at the proper time after 'self' did. Since the reward each presynaptic axon gets deppends on the time it fires, 'P' belongs to each presynaptic axon and not to the postsynaptic dendrite as 'M' does. 
         
         """
         
         if self.spike: 
-            self.P = self.P + self.Aplus
+            self.P = self.P + self.A_plus
         else:
             self.P = euler(exponentialDecay, self.P, [self.tauPlus,0])
 
@@ -272,7 +338,7 @@ class Axon:
     def getReward(self):
         """getReward function: 
         
-        	This method gives the presynaptic axon a reward which deppends on how synchronized were its spike and the dendrite's. 
+        	This method gives the synapse a reward which deppends on how synchronized were the presynaptic and the postsynaptic spikes. 
         
         """
         
@@ -286,9 +352,7 @@ class Axon:
     def getPenalization(self): 
         """getPenalization function: 
         
-        	This method gives the presynaptic axon a penalization which deppends on how synchronized were its spike and the dendrite's. 
-        	
-        	'M', which is a cornerstone of the penalization process, is a function stored in 'self.outDendrite'. 
+        	This method gives the synapse a penalization which deppends on how synchronized were the presynaptic and the postsynaptic spikes. 
         
         """
         
@@ -299,10 +363,24 @@ class Axon:
 
 
 
-a = [Axon(0.1,0) for i in range(5)]
-b = [Axon(0.1,-70) for i in range(5)]
+########################################################
+## 
+## 				Some script to shwo the functionality: 
+
+
+
+# Creating an array of Axon ready to be attached to an object of class Dendrite: 
+
+a = [Axon(0.1,0) for i in range(5)]    # Ecitatory. 
+b = [Axon(0.1,-70) for i in range(5)]  # Inhibitory. 
 a = a+b
+
+
+# Creating a Dendrite to which the Axons before are attached. 
 dendrite1 = Dendrite(a)
+
+
+# Creating variables to run a loop and store info to be plotted later. 
 DeltaT = 0.001
 t = []
 V = []
@@ -310,47 +388,70 @@ M = []
 P0 = []
 g_boost0 = []
 g = [[] for axon in a]
+
+
+# Run the loop: 
+
 for tt in range(1000):
     t = t + [tt*DeltaT]
+    
+    # Update status: 
     for ii in range(len(a)):
-        a[ii].updateG()
+        a[ii].updateStatus()
         g[ii] = g[ii] + [a[ii].g]
     dendrite1.updateStatus()
+    
+    #Storing variables to be plotted: 
     V = V + [dendrite1.V]
     M = M + [dendrite1.M]
     P0 = P0 + [a[0].P]
     g_boost0 = g_boost0 + [a[0].g_boost]
-    
+
+
+# Figure 1: spikes of all presynaptic axons:    
+
 plt.figure()
-plt.title('Spikes')
+plt.title('Spikes of presynaptic axos')
 plt.xlabel('Time [s]')
 plt.ylabel('Conductivity [S]')
 for ll in g:
     plt.plot(t,ll)
 plt.show()
 
+
+# Figure 2: evolution of the potential reward 'P' when a presynaptic axon spikes. 
+
 plt.figure()
-plt.title('Spikes of presynaptic axon [0]')
 plt.subplot(2,1,1)
+plt.title('Spikes of presynaptic axon[0]')
 plt.xlabel('Time [s]')
 plt.ylabel('Conductivity [S]')
 plt.plot(t,g[0])
 plt.subplot(2,1,2)
+plt.title('Potential reward of axon[0]')
 plt.xlabel('Time [s]')
 plt.ylabel('P [#]')
 plt.plot(t,P0)
 plt.show()
 
+
+# Figure 3: evolution of the potential penalization 'M' when a postsynaptic dendrite spikes. 
+
 plt.figure()
 plt.subplot(2,1,1)
+plt.title('Voltage of postsynaptic dendrite')
 plt.xlabel('Time [s]')
 plt.ylabel('Voltage [mV]')
 plt.plot(t,V)
 plt.subplot(2,1,2)
+plt.title('Potential penalization for all axons')
 plt.xlabel('Time [s]')
 plt.ylabel('M [#]')
 plt.plot(t,M)
 plt.show()
+
+
+# Figure 4: acquisition of reward of penalization. 
 
 plt.figure()
 plt.subplot(3,1,1)
@@ -369,12 +470,4 @@ plt.xlabel('Time [s]')
 plt.ylabel('Conductivity [S]')
 plt.plot(t,g_boost0)
 plt.show()
-
-
-
-
-
-
-
-
 
