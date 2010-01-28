@@ -37,11 +37,10 @@ for tt in range(1000):
     P0 = P0 + [a[0].P]
     g_boost0 = g_boost0 + [a[0].g_boost]
 
-
 # Figure 1: spikes of all presynaptic axons:
 plt.figure()
 plt.title('Spikes of presynaptic axos')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Conductivity [S]')
 for ll in g:
     plt.plot(t,ll)
@@ -52,48 +51,46 @@ plt.show()
 plt.figure()
 plt.subplot(2,1,1)
 plt.title('Spikes of presynaptic axon[0]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Conductivity [S]')
 plt.plot(t,g[0])
 plt.subplot(2,1,2)
 plt.title('Potential reward of axon[0]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('P [#]')
 plt.plot(t,P0)
 plt.show()
-
 
 # Figure 3: evolution of the potential penalization 'M' when a
 # postsynaptic dendrite spikes.
 plt.figure()
 plt.subplot(2,1,1)
 plt.title('Voltage of postsynaptic dendrite')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Voltage [mV]')
 plt.plot(t,V)
 plt.subplot(2,1,2)
 plt.title('Potential penalization for all axons')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('M [#]')
 plt.plot(t,M)
 plt.show()
 
-
-# Figure 4: acquisition of reward of penalization. 
+# Figure 4: acquisition of reward of penalization.
 plt.figure()
 plt.subplot(3,1,1)
 plt.title('Spikes of dendrite')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Voltage [mV]')
 plt.plot(t,V)
 plt.subplot(3,1,2)
 plt.title('Spikes of axon[0]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Conductivity [S]')
 plt.plot(t,g[0])
 plt.subplot(3,1,3)
 plt.title('Modification of g_boost')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Conductivity [S]')
 plt.plot(t,g_boost0)
 plt.show()
