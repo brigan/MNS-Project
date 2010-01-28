@@ -1,0 +1,11 @@
+Instructions
+
+Build all:
+$ make
+
+Build pdfs:
+$ make report.pdf
+$ make slides.pdf
+
+Clean:
+$ make clean
