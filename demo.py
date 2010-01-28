@@ -27,7 +27,7 @@ for tt in range(1000):
     
     # Update status: 
     for ii in range(len(a)):
-        a[ii].updateStatus()
+        a[ii].updateStatus(tt)
         g[ii] = g[ii] + [a[ii].g]
     dendrite1.updateStatus()
     

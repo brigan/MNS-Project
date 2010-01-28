@@ -183,6 +183,10 @@ class Axon:
         inhibitory synapses, which is easily done: 'if self.E==0
         --excitatory-- : penalize or reward; otherwise: do not!'.
 
+        Spikes occur depending with the probability p_spike. However
+        when a spike_map is provided it will be used to determine if a
+        spike occurs in the given time step.
+
     Variables:
       ==> self: object of the class Axon.
       ==> outDendrite: object of the class Dendrite to which 'self' is attached.
@@ -209,7 +213,7 @@ class Axon:
 
     #########################################################
     ## __init__:
-    def __init__(self, p_spike, E, g_boost=0.015, g_max=0.015, g_min=0, tau=5, A_plus=0.005,
+    def __init__(self, p_spike=0, E=0, spike_map=[], g_boost=0.015, g_max=0.015, g_min=0, tau=5, A_plus=0.005,
                  tauPlus=20, outDendrite=None):
         """__init__ function of the Axon class:
 
@@ -218,10 +222,11 @@ class Axon:
 
            Arguments:
            ==> E: resting potential for this axon. Together with 'g_boost' determines whether the axon is excitatory or inhibitory.
+           ==> spike_map: an array of integers indicating at what timesteps the axon spikes
            ==> g_boost: boost to the connectivity 'g' when an action potential arrives the axon.
-           ==> p_spike: probability of 'self' to spike.
         """
         self.p_spike = p_spike
+        self.spike_map = spike_map
         self.E = E
         self.g = 0
         self.g_max = g_max
@@ -239,28 +244,40 @@ class Axon:
 
     #########################################################
     ## updateG:
-    def updateStatus(self):
+    def updateStatus(self, t):
         """updateStatus function:
 
-          This function updates the status of objects of the class
-          Axon by updating each of its important features.
+        Arguments:
+        ==> t: t the current time step
+
+        This function updates the status of objects of the class
+        Axon by updating each of its important features.
         """
-        self.updateG()
+        self.updateG(t)
         self.updateP()
 
     #########################################################
     ## updateG:
-    def updateG(self):
+    def updateG(self, t):
         """UpdateG function:
 
-            This method updates the connectivity of the axon
-            increasing 'g' in a quantity 'g_boost' if an action
-            potential arrives to 'self' or letting 'g' decay
-            exponentially otherwise.
+        Arguments:
+        ==> t: t the current time step
+
+        This method updates the connectivity of the axon
+        increasing 'g' in a quantity 'g_boost' if an action
+        potential arrives to 'self' or letting 'g' decay
+        exponentially otherwise.
         """
         self.spike = False
-        if rand.random() < self.p_spike:
-            self.spike = True
+        if len(self.spike_map) > 0:
+            if t in self.spike_map:
+                self.spike = True
+        else:
+            if rand.random() < self.p_spike:
+                self.spike = True
+
+        if self.spike:
             self.g = self.g + self.g_boost
             if self.E == 0:
                 self.getPenalization()
