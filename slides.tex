@@ -1,33 +1,39 @@
 % MNS project 2010 slides
-%
+% 
 % Luís Francisco Seoane Iglesias
 % Mirko Dietrich - mirko.dietrich -AT- bccn-berlin -DOT- de
 % 
 
 \documentclass{beamer}
-
-\usepackage{beamerthemesplit}
+\usepackage{color}
 
 \title{Spike-timing-dependent plasticity}
 \author{Lu\'{i}s Francisco Seoane Iglesias \& Mirko Dietrich}
 \date{\today}
 
+\logo{\includegraphics[scale=0.2]{graphics/bccn_logo_berlin}}
+
 \begin{document}
 
 \frame{\titlepage}
 
-\section[Outline]{}
-\frame{\tableofcontents}
+\section*{Outline}
+\frame{
+  \tableofcontents
+}
 
 \section{Introduction}
 \subsection{Overview of the Beamer Class}
 \frame
-    {
-      \frametitle{Test}
+{
+  \frametitle{Spike-time-dependent}
 
-      \begin{itemize}
-      \item<1-> One test
-      \item<2-> Two test
-      \end{itemize}
-    }
+  \uncover{
+    Based upon \textbf{integrate-and-fire} neuron model: $\tau_{m} \frac{dV}{dt} = V_{rest} - V + \textcolor{red}{g_{ex}(t)}(E_{ex} - V) + \textcolor{blue}{g_{in}(t)}(E_{in} - V)$ \\
+    \vspace{1em}
+    \uncover<2->{$\textcolor{red}{g_{ex}(t)}\rightarrow g_{ex}(t) + \bar{g_a} $ \\
+      $\textcolor{blue}{g_{in}(t)}$}
+  }
+}
+
 \end{document}
