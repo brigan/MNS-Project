@@ -14,51 +14,78 @@ import pylab as plt
 from neuron import *
 
 # simulation parameters
-SIM_DURATION = 2   # s
-DELTA_T      = 0.001 # ms
+SIM_DURATION   = 4000  # ms
+DELTA_T        = 1     # ms
 
 # pre-synaptic events occur every EVENT_PERIOD
-EVENT_PERIOD = 1000 # ms
+EVENT_PERIOD   = 500   # ms
 
-# parameters for single spike burst (poisson)
-BURST_DURATION = 20  # ms
-BURST_FREQ     = 100 # Hertz
+# parameters for single spike burst
+BURST_DURATION = 20    # ms
+BURST_FREQ     = 100   # Hz
 
-# create axons
-exc = [Axon(0.1, 0) for i in range(25)]  # Excitatory.
-inh = [Axon(0.1, -70) for i in range(15)] # Inhibitory.
-a = exc + inh
+# number of axons
+EXC_NUM = 200
+INH_NUM = 40
+
+def plot_g_over_latencies(axons, latencies):
+    """Plots g_peak/g_max over the axon's latencies."""
+    plt.figure()
+    plt.xlabel('Relative latency [ms]')
+    plt.ylabel('g_peak/g_max')
+    r_ = range(min(latencies), max(latencies) + 1)
+    r  = []
+    v  = []
+    for i in range(len(r_)):
+        num = 0
+        g_peak_sum = 0.
+        g_max_sum = 0.
+        for j in range(len(axons)):
+            if latencies[j] == r_[i]:
+                num += 1
+                g_peak_sum += axons[j].g_boost
+                g_max_sum += axons[j].g_max
+        if num != 0:
+            g_peak_over_g_max = (g_peak_sum / num) / (g_max_sum / num)
+            r.append(r_[i])
+            v.append(g_peak_over_g_max)
+    plt.plot(r, v, '.')
 
 # assign latency to synapses (gaussian: mean 0, std. derivation 15ms)
-a_latencies = [int(i) for i in rand.normal(0, 15, len(a))]
+total_axons = EXC_NUM + INH_NUM
+a_latencies = [int(i) for i in rand.normal(0, 15, total_axons)]
 
 # generate spike bursts for axons
-a_spike_map = [[] for i in a]
-spike_prob = BURST_FREQ * DELTA_T
-for i in range(int(SIM_DURATION / EVENT_PERIOD)):
+steps = int(SIM_DURATION / DELTA_T)
+a_spike_map = [[] for i in range(total_axons)]
+spike_prob = BURST_FREQ * DELTA_T / 1000.
+
+for i in range(SIM_DURATION / EVENT_PERIOD): # every event
     t = i * EVENT_PERIOD
-    for j in range(len(a)):
-        for k in range(int(BURST_DURATION / (DELTA_T * 1000))):
+    for j in range(total_axons): # for every axon
+        for k in range(int(BURST_DURATION / DELTA_T)): # for burst duration
             if rand.random() < spike_prob:
-                a_spike_map[j].append(t + k + a_latencies[0])
+                a_spike_map[j].append(t + k + a_latencies[j])
 
-for i in range(len(a)):
-    a[i].spike_map = a_spike_map[i]
-
-# creating a dendrite to which the axons before are attached.
+# create axons + dentrite
+# excitatory
+exc = [Axon(0.1, 0, g_boost=0.003, g_max=0.015, spike_map=a_spike_map.pop()) \
+           for i in range(EXC_NUM)]
+# inhibitory
+inh = [Axon(0.1, -70, g_boost=0.003, g_max=0.015, spike_map=a_spike_map.pop()) \
+           for i in range(INH_NUM)]
+a = exc + inh
 dendrite = Dendrite(a)
 
-# Run the loop: 
+# plot g over latencies before simulation
+plot_g_over_latencies(a, a_latencies)
+
+# Run the simulation
 g = [[] for axon in a]
-steps = int(SIM_DURATION / DELTA_T)
 time = []
 V = []
 spikes = []
 for tt in range(steps):
-    # debug info
-    if tt % int(steps / 100) == 0:
-        print "sim time: %d/%dms (%d%%)" % (tt, steps, 100 * tt / steps)
-
     # Update status: 
     for i in range(len(a)):
         a[i].updateStatus(tt)
@@ -75,27 +102,15 @@ for tt in range(steps):
             break
     spikes.append(spiking)
 
-#    M = M + [dendrite.M]
-#    P0 = P0 + [a[0].P]
-#    g_boost0 = g_boost0 + [a[0].g_boost]
+# plot g over latencies after simulation
+plot_g_over_latencies(a, a_latencies)
 
-# Figure 3: evolution of the potential penalization 'M' when a
-# postsynaptic dendrite spikes.
+# plot axon's voltage over time
 plt.figure()
-
-# plot spike events
-t_values = range(SIM_DURATION)
-for i in range(5):
-    plt.plot(time, [i + .5 if t in a[i].spike_map else 0 for t in time], '.')
-
-#plt.subplot(2,1,1)
-plt.xlabel('Time [ms]')
+plt.xlabel('Time [s]')
 plt.ylabel('Voltage [mV]')
 plt.plot(time, V, label='Voltage of postsynaptic dendrite')
-#plt.plot(t, spikes, 'r.')
-#plt.subplot(2,1,2)
-# plt.title('Potential penalization for all axons')
-# plt.xlabel('Time [ms]')
-# plt.ylabel('M [#]')
-#plt.plot(t,M)
+plt.plot(time, spikes, 'r.')
+plt.legend()
+
 plt.show()
