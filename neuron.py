@@ -213,7 +213,7 @@ class Axon:
 
     #########################################################
     ## __init__:
-    def __init__(self, p_spike=0, E=0, spike_map=[], g_boost=0.015, g_max=0.015, g_min=0, tau=5, A_plus=0.005,
+    def __init__(self, p_spike=0, E=0, spike_map=None, g_boost=0.015, g_max=0.015, g_min=0, tau=5, A_plus=0.005,
                  tauPlus=20, outDendrite=None):
         """__init__ function of the Axon class:
 
@@ -270,7 +270,7 @@ class Axon:
         exponentially otherwise.
         """
         self.spike = False
-        if len(self.spike_map) > 0:
+        if self.spike_map != None:
             if t in self.spike_map:
                 self.spike = True
         else:
