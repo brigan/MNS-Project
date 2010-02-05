@@ -5,8 +5,8 @@ from neuron import *
 
 # Creating an array of Axon ready to be attached to an object of class
 # Dendrite:
-a = [Axon(0.1, 0) for i in range(5)]    # Excitatory. 
-b = [Axon(0.1, -70) for i in range(5)]  # Inhibitory. 
+a = [Axon(0.05, 0) for i in range(5)]    # Excitatory. 
+b = [Axon(0.09, -70) for i in range(5)]  # Inhibitory. 
 a = a+b
 
 # Creating a Dendrite to which the Axons before are attached.

@@ -43,7 +43,7 @@ class Dendrite:
     #########################################################
     ##
     ## __init__:
-    def __init__(self, arrayAxons, V_rest=-70, tau=20, V_thr=-54, V_peak=60, V_reset=-60,
+    def __init__(self, arrayAxons, V_rest=-70, tau=20, V_thr=-54, V_peak=0, V_reset=-60,
                  A_minus=0.00525, tauMinus=20):
         """__init__ function for the class Dendrite:
 
