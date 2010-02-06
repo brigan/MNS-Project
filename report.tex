@@ -7,6 +7,7 @@
 \documentclass[a4paper,12pt,oneside]{article}
 
 \usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
 \usepackage{cite}
 \usepackage{graphicx}
 \usepackage{epsfig}
@@ -15,6 +16,9 @@
 \usepackage{setspace}
 
 %\sloppy
+
+% typeset physical units
+\newcommand{\unit}[1]{\ensuremath{\, \mathrm{#1}}}
 
 \begin{document}
 
@@ -34,10 +38,7 @@ Models of Neural Systems WS 09/10 \\
 Luís Francisco Seoane Iglesias \\
 Mirko Dietrich \\
 \vspace{1em}
-Bernstein Center for Computational Neuroscience Berlin \\
-Humboldt-Universität Berlin \\
-Unter den Linden 6 \\
-10099 Berlin
+Bernstein Center for Computational Neuroscience Berlin
 \end{center}
 \end{titlepage}
 
@@ -45,16 +46,79 @@ Unter den Linden 6 \\
 
 \newpage
 
-\section{Preambel}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
 
-Test\cite{Song:2000}.
+While the Hebbian learning rule says that \textit{cells that fire
+  together, wire together} the Spike-timing-dependent plasticity
+theory states more precisely by describing a relation between synapse
+plasticity and the time between pre- and postsynaptic spikes. It finds
+when a presynaptic precedes a postsynaptic spike the corresponding
+synapse connectivity is strengthened. On the other hand when a
+presynaptic follows a postsynaptic action potential the efficacy of
+synapse transmission decreases.\cite{Song:2000}
 
-\section{Implementation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Methods}
 
-\section{Experiments}
+We modelled a neuron with a number of inhibitory and excitatory
+synapses connected to it. The neuron's voltage is calculated using a
+modified integrate-and-fire model. Synaptic conductances $g_{in}$ and
+$g_{ex}$ change with time:
 
+\[
+\tau_m \frac{dV}{dt} = V_{rest} – V + g_{ex}(t)(E_{ex} – V) + g_{in}(t)(E_{in} – V)
+\]
+
+A postsynaptic action potential is triggered when the cell's resting
+potential reaches a threshold of $-54\unit{mV}$. Afterwards the
+voltage is reset to $-60\unit{mV}$.
+
+Whenever a presynaptic spike arrives the synapse conductance is changed:
+
+\[
+g_{ex}(t) \rightarrow g_{ex}(t)+\bar{g}_{a}
+\]
+
+\[
+g_{in}(t) \rightarrow g_{in}(t)+\bar{g}_{in}
+\]
+
+If no presynaptic spike occurs the conductance decays exponentially:
+
+\[
+\tau_{ex} \frac{dg_{ex}}{dt} = -g_{ex},\hspace{1em} \tau_{in} \frac{dg_{in}}{dt} = -g_{in}
+\]
+
+\subsection{Parameters}
+
+The following parameters were used for the simulation:
+
+\begin{align*}
+  \tau_m &= 20\unit{ms} \\
+  V_{rest} &= -70\unit{mV} \\
+  E_{ex} &= 0\unit{mV} \\
+  E_{in} &= -70\unit{mV} \\
+  \tau_{ex} = \tau_{in} &= 5\unit{ms} \\
+  \bar{g}_{in} &= 0.05 \\
+  \bar{g}_{max} &= 0.0015
+\end{align*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}
+
+Discuss your results as well as potential problems that you
+encountered. Also mention any open questions and potential future projects.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Contributions}
+Describe who did what (programming, writing of the report, figures,...)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-
 \bibliographystyle{plain}
 \bibliography{report}
 
