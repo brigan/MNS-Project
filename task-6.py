@@ -11,22 +11,25 @@ incoming spike bursts (Song et al., 2000, Figure 4).
 
 import numpy.random as rand
 import pylab as plt
+
 from neuron import *
 
 # simulation parameters
-SIM_DURATION   = 4000  # ms
-DELTA_T        = 1     # ms
+SIM_DURATION           = 80    # ms
+DELTA_T                = 0.5   # ms
+STEADY_STATE_THRESHOLD = 0.005
 
 # pre-synaptic events occur every EVENT_PERIOD
-EVENT_PERIOD   = 500   # ms
+EVENT_PERIOD   = 100   # ms
+EVENT_ONSET    = 30    # ms (shift all events)
 
 # parameters for single spike burst
 BURST_DURATION = 20    # ms
 BURST_FREQ     = 100   # Hz
 
 # number of axons
-EXC_NUM = 200
-INH_NUM = 40
+EXC_NUM        = 120
+INH_NUM        = 20
 
 def plot_g_over_latencies(axons, latencies):
     """Plots g_peak/g_max over the axon's latencies."""
@@ -60,12 +63,12 @@ steps = int(SIM_DURATION / DELTA_T)
 a_spike_map = [[] for i in range(total_axons)]
 spike_prob = BURST_FREQ * DELTA_T / 1000.
 
-for i in range(SIM_DURATION / EVENT_PERIOD): # every event
+for i in range(SIM_DURATION / EVENT_PERIOD + 1): # every event
     t = i * EVENT_PERIOD
     for j in range(total_axons): # for every axon
         for k in range(int(BURST_DURATION / DELTA_T)): # for burst duration
             if rand.random() < spike_prob:
-                a_spike_map[j].append(t + k + a_latencies[j])
+                a_spike_map[j].append(t + EVENT_ONSET / DELTA_T + k + a_latencies[j])
 
 # create axons + dentrite
 # excitatory
@@ -81,36 +84,69 @@ dendrite = Dendrite(a)
 plot_g_over_latencies(a, a_latencies)
 
 # Run the simulation
-g = [[] for axon in a]
-time = []
-V = []
-spikes = []
-for tt in range(steps):
-    # Update status: 
-    for i in range(len(a)):
-        a[i].updateStatus(tt)
-        g[i] += [a[i].g]
-    dendrite.updateStatus()
+g       = [[] for axon in a]
+time    = []
+V_first = []
+V       = []
+spikes  = []
 
-    #Storing variables to be plotted: 
-    time.append(tt * DELTA_T)
-    V.append(dendrite.V)
-    spiking = 0
+steady_state = False
+g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in a]
+j = 0
+while True:
+    # set decaying values to 0 (equals waiting for long time without
+    # post-synaptic spikes)
+    dendrite.M = 0.
+    dendrite.V = 0.
     for axon in a:
-        if axon.spike:
-            spiking = 1
+        axon.g = 0.
+        axon.P = 0.
+
+    V = []
+    for tt in range(steps):
+        # update status
+        for i in range(len(a)):
+            a[i].updateStatus(tt)
+            g[i] += [a[i].g]
+        dendrite.updateStatus()
+
+        # storing variables to be plotted
+        if j == 0:
+            V_first.append(dendrite.V)
+            time.append(tt * DELTA_T)
+            spiking = 0
+            for axon in a:
+                if axon.spike:
+                    spiking = 1
+                    break
+            spikes.append(spiking)
+            V = V_first
+        else:
+            V.append(dendrite.V)
+
+    # check if steady state reached
+    one_changed = False
+    for i in range(len(a)):
+        if abs(a[i].g_boost / a[i].g_max - g_peak_over_g_max_prev[i]) > STEADY_STATE_THRESHOLD:
+            one_changed = True
             break
-    spikes.append(spiking)
+    if one_changed == False:
+        break
+    g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in a]
+    j += 1
+
+print "cycles: ", j
 
 # plot g over latencies after simulation
 plot_g_over_latencies(a, a_latencies)
 
 # plot axon's voltage over time
 plt.figure()
-plt.xlabel('Time [s]')
+plt.xlabel('Time [ms]')
 plt.ylabel('Voltage [mV]')
-plt.plot(time, V, label='Voltage of postsynaptic dendrite')
 plt.plot(time, spikes, 'r.')
+plt.plot(time, V_first, label='Voltage of postsynaptic dendrite (first run)')
+plt.plot(time, V, label='Voltage of postsynaptic dendrite (last run)')
 plt.legend()
 
 plt.show()
