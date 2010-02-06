@@ -17,7 +17,7 @@ from neuron import *
 # simulation parameters
 SIM_DURATION           = 80    # ms
 DELTA_T                = 0.5   # ms
-STEADY_STATE_THRESHOLD = 0.005
+STEADY_STATE_THRESHOLD = 5e-6
 
 # pre-synaptic events occur every EVENT_PERIOD
 EVENT_PERIOD   = 100   # ms
@@ -72,10 +72,10 @@ for i in range(SIM_DURATION / EVENT_PERIOD + 1): # every event
 
 # create axons + dentrite
 # excitatory
-exc = [Axon(0.1, 0, g_boost=0.003, g_max=0.015, spike_map=a_spike_map.pop()) \
+exc = [Axon(0.1, 0, g_boost=0.004, g_max=0.02, spike_map=a_spike_map.pop()) \
            for i in range(EXC_NUM)]
 # inhibitory
-inh = [Axon(0.1, -70, g_boost=0.003, g_max=0.015, spike_map=a_spike_map.pop()) \
+inh = [Axon(0.1, -70, g_boost=0.004, g_max=0.02, spike_map=a_spike_map.pop()) \
            for i in range(INH_NUM)]
 a = exc + inh
 dendrite = Dendrite(a)
