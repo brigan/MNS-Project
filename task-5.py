@@ -19,8 +19,8 @@ from neuron import *
 nExc = 1000
 nInh = 200
 fInh = 0.01
-rangeExc = np.arange(0.01,0.04,0.005) 	# Unitites = [ms]
-deltaT = 0.01
+rangeExc = [0.01] #np.arange(0.01,0.04,0.005) 	# Unitites = [ms]
+deltaT = 1
 pInh = fInh*deltaT
 pExc = [elem*deltaT for elem in rangeExc]
 gg = 0.015
@@ -28,8 +28,6 @@ gg = 0.015
 listInh = [Axon(p_spike=pInh, E=-70, g_boost=0.05) for ii in range(nInh)]
 listsExc = [[Axon(p, E=0, g_boost=gg, g_max=gg) for ii in range(nExc)] for p in pExc]
 dendrite = [Dendrite(listInh+axonList) for axonList in listsExc]
-print len(dendrite)
-print list(rangeExc)
 
 
 # Variables to plot: 
@@ -41,8 +39,10 @@ spikeCount = [0 for dd in dendrite]
 
 # Run the loop: 
 while True: 
+    print t
+    t = t + 1
     for ii in range(len(dendrite)):
-        t = t + 1
+        
         time[ii] = time[ii] + [t*deltaT]
     
         for axon in listInh:
@@ -65,7 +65,7 @@ while True:
 #        if r > 0.1:
 #            flagEnd = False
 #            break
-    if t*deltaT > 500: 					# (t*deltaT > 10 and flagEnd) or
+    if t*deltaT > 100000: 					# (t*deltaT > 10 and flagEnd) or
         break
 
 # Calculating 'a posteriori' variables to be plotted: 
@@ -79,17 +79,12 @@ for ii in range(len(listsExc)):
         g[ii] = g[ii] + [axon.g_boost/gg]
 
 
- 
-# Voltage of 'dendrite': 
-plt.figure()
-for ii in range(len(V)):
-    plt.plot(time[ii],V[ii]) 
-
-
 # Some histograms: 
 plt.figure()
 # for ggg in g:
 plt.hist(g[0],20)
+
+plt.figure()
 plt.hist(g[-1],20)
 
 
