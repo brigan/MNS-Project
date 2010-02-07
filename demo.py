@@ -44,7 +44,6 @@ plt.xlabel('Time [ms]')
 plt.ylabel('Conductivity [S]')
 for ll in g:
     plt.plot(t,ll)
-plt.show()
 
 # Figure 2: evolution of the potential reward 'P' when a presynaptic
 # axon spikes.
@@ -59,7 +58,6 @@ plt.title('Potential reward of axon[0]')
 plt.xlabel('Time [ms]')
 plt.ylabel('P [#]')
 plt.plot(t,P0)
-plt.show()
 
 # Figure 3: evolution of the potential penalization 'M' when a
 # postsynaptic dendrite spikes.
@@ -74,7 +72,6 @@ plt.title('Potential penalization for all axons')
 plt.xlabel('Time [ms]')
 plt.ylabel('M [#]')
 plt.plot(t,M)
-plt.show()
 
 # Figure 4: acquisition of reward of penalization.
 plt.figure()
@@ -93,4 +90,5 @@ plt.title('Modification of g_boost')
 plt.xlabel('Time [ms]')
 plt.ylabel('Conductivity [S]')
 plt.plot(t,g_boost0)
+
 plt.show()

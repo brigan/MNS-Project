@@ -5,7 +5,7 @@
 % 
 
 \documentclass{beamer}
-\usepackage{color}
+	\usepackage{color}
 
 \title{Spike-timing-dependent plasticity}
 \author{Lu\'{i}s Francisco Seoane Iglesias \& Mirko Dietrich}
@@ -36,4 +36,37 @@
   }
 }
 
+\section{Demo}
+
+	\begin{frame} 
+		\begin{columns} 
+			\column{0.5\textwidth} 
+				\begin{figure} 
+					\centering
+					\includegraphics[width=\textwidth]{graphics/demo/fig01} 
+				\end{figure} 
+			\column{0.5\textwidth} 
+				\begin{itemize} 
+					\item Axons spike with a certain frequency. 
+					\item When spike, a \alert{potential \emph{reward}} accumulates. 
+				\end{itemize}
+		\end{columns}
+	\end{frame}
+	
+	\begin{frame} 
+		\begin{columns} 
+			\column{0.5\textwidth} 
+				\begin{figure} 
+					\centering
+					\includegraphics[width=\textwidth]{graphics/demo/fig02} 
+				\end{figure} 
+			\column{0.5\textwidth} 
+				\begin{itemize} 
+					\item The dendrite spikes induced by the axons. 
+					\item A \alert{\emph{penalty} function} also accumulates, elicited by the spike of the dentrite. 
+				\end{itemize}
+		\end{columns}
+	\end{frame}
+
 \end{document}
+ 
