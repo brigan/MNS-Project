@@ -16,8 +16,8 @@ from neuron import *
 
 # simulation parameters
 SIM_DURATION           = 80    # ms
-DELTA_T                = 0.5   # ms
-STEADY_STATE_THRESHOLD = 5e-6
+DELTA_T                = 0.01   # ms
+STEADY_STATE_THRESHOLD = 0.01
 
 # pre-synaptic events occur every EVENT_PERIOD
 EVENT_PERIOD   = 100   # ms
@@ -28,8 +28,8 @@ BURST_DURATION = 20    # ms
 BURST_FREQ     = 100   # Hz
 
 # number of axons
-EXC_NUM        = 120
-INH_NUM        = 20
+EXC_NUM        = 1000
+INH_NUM        = 200
 
 def plot_g_over_latencies(axons, latencies):
     """Plots g_peak/g_max over the axon's latencies."""
@@ -56,7 +56,8 @@ def plot_g_over_latencies(axons, latencies):
 
 # assign latency to synapses (gaussian: mean 0, std. derivation 15ms)
 total_axons = EXC_NUM + INH_NUM
-a_latencies = [int(i) for i in rand.normal(0, 15, total_axons)]
+	# Eiji a_latencies = [int(i) for i in rand.normal(0, 15, total_axons)]
+exc_latencies = [int(i) for i in rand.normal(0, 15, EXC_NUM)]
 
 # generate spike bursts for axons
 steps = int(SIM_DURATION / DELTA_T)
@@ -65,23 +66,27 @@ spike_prob = BURST_FREQ * DELTA_T / 1000.
 
 for i in range(SIM_DURATION / EVENT_PERIOD + 1): # every event
     t = i * EVENT_PERIOD
-    for j in range(total_axons): # for every axon
+	# Eiji   for j in range(total_axons): # for every axon
+    for j in range(EXC_NUM): # for every axon
         for k in range(int(BURST_DURATION / DELTA_T)): # for burst duration
             if rand.random() < spike_prob:
-                a_spike_map[j].append(t + EVENT_ONSET / DELTA_T + k + a_latencies[j])
+            	# Eiji a_spike_map[j].append(t + EVENT_ONSET / DELTA_T + k + a_latencies[j])
+            	a_spike_map[j].append(t + EVENT_ONSET / DELTA_T + k + exc_latencies[j])
 
 # create axons + dentrite
 # excitatory
 exc = [Axon(0.1, 0, g_boost=0.004, g_max=0.02, spike_map=a_spike_map.pop()) \
            for i in range(EXC_NUM)]
 # inhibitory
-inh = [Axon(0.1, -70, g_boost=0.004, g_max=0.02, spike_map=a_spike_map.pop()) \
-           for i in range(INH_NUM)]
+	# Eiji inh = [Axon(0.1, -70, g_boost=0.004, g_max=0.02, spike_map=a_spike_map.pop()) \
+    # Eiji      for i in range(INH_NUM)]
+inh = [Axon(DELTA_T*0.01, -70, g_boost=0.05) for i in range(INH_NUM)]
 a = exc + inh
 dendrite = Dendrite(a)
 
 # plot g over latencies before simulation
-plot_g_over_latencies(a, a_latencies)
+	# Eiji plot_g_over_latencies(a, a_latencies)
+plot_g_over_latencies(exc, exc_latencies)
 
 # Run the simulation
 g       = [[] for axon in a]
@@ -91,7 +96,8 @@ V       = []
 spikes  = []
 
 steady_state = False
-g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in a]
+	# Eiji g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in a]
+g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in exc]
 j = 0
 while True:
     # set decaying values to 0 (equals waiting for long time without
@@ -123,22 +129,29 @@ while True:
             V = V_first
         else:
             V.append(dendrite.V)
+###Eiji 
+###Eiji     # check if steady state reached
+###Eiji     one_changed = False
+###Eiji 	# Eiji    for i in range(len(a)):
+###Eiji     for i in range(len(exc)):
+###Eiji         if abs(exc[i].g_boost / exc[i].g_max - g_peak_over_g_max_prev[i]) > STEADY_STATE_THRESHOLD:
+###Eiji             one_changed = True
+###Eiji             break
+###Eiji     if one_changed == False:
+###Eiji         break
 
-    # check if steady state reached
-    one_changed = False
-    for i in range(len(a)):
-        if abs(a[i].g_boost / a[i].g_max - g_peak_over_g_max_prev[i]) > STEADY_STATE_THRESHOLD:
-            one_changed = True
-            break
-    if one_changed == False:
+    print j
+    if j > 5:
         break
-    g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in a]
+	# Eiji    g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in a]
+    g_peak_over_g_max_prev = [axon.g_boost / axon.g_max for axon in exc]
     j += 1
 
 print "cycles: ", j
 
 # plot g over latencies after simulation
-plot_g_over_latencies(a, a_latencies)
+	# Eiji    plot_g_over_latencies(a, a_latencies)
+plot_g_over_latencies(exc, exc_latencies)
 
 # plot axon's voltage over time
 plt.figure()

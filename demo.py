@@ -5,15 +5,15 @@ from neuron import *
 
 # Creating an array of Axon ready to be attached to an object of class
 # Dendrite:
-a = [Axon(0.05, 0) for i in range(5)]    # Excitatory. 
-b = [Axon(0.09, -70) for i in range(5)]  # Inhibitory. 
+a = [Axon(0.01, 0) for i in range(1000)]    # Excitatory. 
+b = [Axon(0.01, -70) for i in range(200)]  # Inhibitory. 
 a = a+b
 
 # Creating a Dendrite to which the Axons before are attached.
 dendrite1 = Dendrite(a)
 
 # Creating variables to run a loop and store info to be plotted later.
-DeltaT = 0.001
+DeltaT = 0.1
 t = []
 V = []
 M = []

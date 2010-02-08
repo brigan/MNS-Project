@@ -35,4 +35,4 @@ def exponentialDecay(x,param):
     """
     tau = param[0]
     resting_value = param[1]
-    return -(x-resting_value)*tau
+    return -(x-resting_value)/tau

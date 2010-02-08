@@ -16,64 +16,80 @@ from neuron import *
 # 			>>> pExc: list storing the probability of each excitatory connection to be built. 
 # 	==> listConnections: list with objects of the class 'Axon'. Both excitatory and inhibitory are stored in the same list. 
 
+stopThres = 0.01
 nExc = 1000
 nInh = 200
-fInh = 0.01
-rangeExc = [0.01] #np.arange(0.01,0.04,0.005) 	# Unitites = [ms]
-deltaT = 1
+fInh = 0.1
+rangeExc = np.arange(0.01,0.04,0.005) 	# Unitites = [ms]
+						# Eiji fExc = 0.04
+deltaT = 0.1
 pInh = fInh*deltaT
 pExc = [elem*deltaT for elem in rangeExc]
+						# Eiji pExc = fExc*deltaT
 gg = 0.015
 
 listInh = [Axon(p_spike=pInh, E=-70, g_boost=0.05) for ii in range(nInh)]
 listsExc = [[Axon(p, E=0, g_boost=gg, g_max=gg) for ii in range(nExc)] for p in pExc]
+						# Eiji listExc = [Axon(p_spike=pExc, E=0, g_boost=gg, g_max=gg) for ii in range(nExc)]
 dendrite = [Dendrite(listInh+axonList) for axonList in listsExc]
+						# Eiji dendrite = Dendrite(listInh+listExc)	
 
 
 # Variables to plot: 
 t = 0
-time = [[] for ii in range(len(dendrite))]
+n = 0
+time = []
 V = [[] for ii in range(len(dendrite))]
-bufferG = [[0 for axon in axonList] for axonList in listsExc]
+bufferG = bufferG = [[0 for axon in axonList] for axonList in listsExc]
 spikeCount = [0 for dd in dendrite]
 
 # Run the loop: 
+flagEnd = False
 while True: 
     print t
     t = t + 1
-    for ii in range(len(dendrite)):
-        
-        time[ii] = time[ii] + [t*deltaT]
-    
-        for axon in listInh:
-            axon.updateStatus(t)
+    n = n + 1
+    time = time + [t*deltaT]
+    for axon in listInh:
+        axon.updateStatus(deltaT)
+
+    for ii in range(len(dendrite)):        
         for jj in range(len(listsExc[ii])):
-            bufferG[ii][jj] = listsExc[ii][jj].g
-            listsExc[ii][jj].updateStatus(t*deltaT)
+            listsExc[ii][jj].updateStatus(deltaT)
         dendrite[ii].updateStatus()
         if dendrite[ii].spike:
             spikeCount[ii] = spikeCount[ii] + 1
     
-        #Store Variables:
         V[ii] = V[ii] + [dendrite[ii].V]
-           
-#    flagEnd = True
-#    for ii in range(len(listsExc)): 
-#        r = 0
-#        for jj in range(len(listsExc[ii])): 
-#            r = r + np.sqrt((bufferG[ii][jj]-listsExc[ii][jj].g)**2)
-#        if r > 0.1:
-#            flagEnd = False
-#            break
-    if t*deltaT > 100000: 					# (t*deltaT > 10 and flagEnd) or
+     
+#    if n is 100: 
+#        n=0
+#        flagEnd = True
+#        for ii in range(len(listExc)): 
+#            if abs(bufferG[ii]-listExc[ii].g) > stopThres:
+#                flagEnd = False
+#                print ii, abs(bufferG[ii]-listExc[ii].g)
+#                break
+#        for ii in range(len(listExc)): 
+#            bufferG[ii] = listExc[ii].g
+#    if flagEnd:
+#        break
+
+    if t*deltaT > 100: 					# (t*deltaT > 10 and flagEnd) or
         break
 
 # Calculating 'a posteriori' variables to be plotted: 
 fr = [0 for den in dendrite]
 for ii in range(len(dendrite)):
     fr[ii] = spikeCount[ii]/(t*deltaT)
+    
+plt.figure()
+plt.plot(rangeExc,fr,'*-')
+plt.show()
 
 g = [[] for axonList in listsExc]
+						# Eiji for axon in listExc:
+						# Eiji    g = g + [axon.g_boost/axon.g_max]
 for ii in range(len(listsExc)):
     for axon in listsExc[ii]:
         g[ii] = g[ii] + [axon.g_boost/gg]
@@ -83,14 +99,12 @@ for ii in range(len(listsExc)):
 plt.figure()
 # for ggg in g:
 plt.hist(g[0],20)
-
-plt.figure()
 plt.hist(g[-1],20)
 
 
 # Firing rate: 
-plt.figure()
-plt.plot(rangeExc,fr,'*-')
+# Eiji plt.figure()
+# Eiji plt.plot(rangeExc,fr,'*-')
 
 
 
